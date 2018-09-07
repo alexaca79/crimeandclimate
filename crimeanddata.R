@@ -4,7 +4,9 @@
 ### What is the temperature in which crime explodes 
 ### Looking at Toronto 
 
-setwd("https://intra.sse.gov.on.ca/MCSCS/raib/au/Shared Documents/Crimeandclimate")
+# setwd("https://intra.sse.gov.on.ca/MCSCS/raib/au/Shared Documents/Crimeandclimate")
+
+ setwd("~/Projects/Crimeandclimate") 
 
 ### Libraries 
 library(tidyverse)
@@ -16,7 +18,8 @@ library(lubridate)
 library(forecast)
 library(imputeTS)
 library(aTSA)
-
+library(SparseM)
+library(quantreg)
 
 ###Retrieve Climate Data from Statscan using Toronto International Airport Climate Station 
 climate<-ec_climate_data(
@@ -66,3 +69,27 @@ crimtemplot<- ggplot(data=climate, aes(x=max_temp_c,y=crimedfbydate$n))+
               geom_point(colour="red")+
               geom_smooth(method = "lm")
 crimtemplot
+
+##Quantile Regression 
+
+Qreg25 <- rq(crimedfbydatets~climatemax, tau=0.25)
+Qreg50 <- rq(crimedfbydatets~climatemax, tau=0.50)
+Qreg75 <- rq(crimedfbydatets~climatemax, tau=0.75)
+Qreg90 <- rq(crimedfbydatets~climatemax, tau=0.90)
+Qreg99 <- rq(crimedfbydatets~climatemax, tau=0.99)
+
+
+# QR.5to1 <- rq(crimedfbydatets~climatemax, tau=seq(0, 0.01, by=0.001))
+QR.9to1 <- rq(crimedfbydatets~climatemax, tau=1:99/100)
+wutang<- sort(climate$max_temp_c_nascrup)
+plot(summary(QR.9to1), parm="climatemax")
+
+wutang<- as.data.frame(wutang)
+#32.6 degrees when crime rate goes down from temperature (it's too hot to crime)
+
+
+plot(QR.9to1)
+
+QR.9to1
+
+
